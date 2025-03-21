@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GREEN-API Tester</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: black;
+            color: white;
+        }
+
+        .container {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 300px;
+        }
+
+        .right-panel {
+            flex: 2;
+            padding: 10px;
+            border: 1px solid white;
+            min-height: 200px;
+            overflow: auto;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        input, button {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #40E0D0;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #20B2AA;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .gap {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <input id="idInstance" placeholder="idInstance">
+            <input id="apiTokenInstance" placeholder="ApiTokenInstance">
+
+            <div class="gap"></div>
+
+            <button onclick="getSettings()">getSettings</button>
+            <button onclick="getStateInstance()">getStateInstance</button>
+
+            <div class="gap"></div>
+
+            <input id="phoneNumber" placeholder="77771234567">
+            <input id="message" placeholder="Сообщение">
+
+            <button onclick="sendMessage()">sendMessage</button>
+
+            <div class="gap"></div>
+
+            <input id="phoneNumberFile" placeholder="77771234567">
+            <input id="fileUrl" placeholder="Ссылка на файл">
+
+            <button onclick="sendFileByUrl()">sendFileByUrl</button>
+        </div>
+        <div class="right-panel">
+            <pre id="responseBox"></pre> <!-- Поле для вывода ответа -->
+        </div>
+    </div>
+    <script>
+        function callApi(endpoint, method = "GET", body = null) {
+            const idInstance = document.getElementById("idInstance").value;
+            const apiTokenInstance = document.getElementById("apiTokenInstance").value;
+
+            if (!idInstance || !apiTokenInstance) {
+                alert("Пожалуйста, заполните idInstance и ApiTokenInstance");
+                return;
+            }
+
+            const url = `https://api.green-api.com/waInstance${idInstance}/${endpoint}/${apiTokenInstance}`;
+            return fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: body ? JSON.stringify(body) : null,
+            })
+            .then(response => response.json())
+            .catch(error => {
+                document.getElementById("responseBox").innerText = `Ошибка: ${error.message}`;
+            });
+        }
+
+        function getSettings() {
+            callApi("getSettings").then(data => {
+                document.getElementById("responseBox").innerText = JSON.stringify(data, null, 2);
+            });
+        }
+
+        function getStateInstance() {
+            callApi("getStateInstance").then(data => {
+                document.getElementById("responseBox").innerText = JSON.stringify(data, null, 2);
+            });
+        }
+
+        function sendMessage() {
+            const phoneNumber = document.getElementById("phoneNumber").value;
+            const message = document.getElementById("message").value;
+
+            if (!phoneNumber || !message) {
+                alert("Пожалуйста, заполните номер телефона и сообщение");
+                return;
+            }
+
+            const body = {
+                chatId: phoneNumber + "@c.us",
+                message: message
+            };
+            callApi("sendMessage", "POST", body).then(data => {
+                document.getElementById("responseBox").innerText = JSON.stringify(data, null, 2);
+            });
+        }
+
+        function sendFileByUrl() {
+            const phoneNumber = document.getElementById("phoneNumberFile").value;
+            const fileUrl = document.getElementById("fileUrl").value;
+
+            if (!phoneNumber || !fileUrl) {
+                alert("Пожалуйста, заполните номер телефона и ссылку на файл");
+                return;
+            }
+
+            const body = {
+                chatId: phoneNumber + "@c.us",
+                urlFile: fileUrl,
+                fileName: "file"
+            };
+            callApi("sendFileByUrl", "POST", body).then(data => {
+                document.getElementById("responseBox").innerText = JSON.stringify(data, null, 2);
+            });
+        }
+    </script>
+</body>
+</html>
